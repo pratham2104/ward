@@ -14,6 +14,7 @@
     "demo:dashboard": "tsx src/dashboard/demo.ts",
     "test": "vitest run",
     "test:target": "vitest run target/tests",
+    "ch:scale": "tsx src/clickhouse-scale.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

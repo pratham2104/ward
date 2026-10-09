@@ -1,0 +1,66 @@
+rules:
+  # --- AI-app-specific: model-controlled tool argument reaching a dangerous sink ---
+  - id: ward-llm-tool-arg-into-sql
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-89: SQL Injection"
+      owasp-llm: "LLM01: Prompt Injection -> data exfiltration"
+      confidence: HIGH
+      references:
+        - https://owasp.org/www-project-top-10-for-large-language-model-applications/
+      why: >
+        In an LLM app, a tool's arguments are model-controlled and therefore
+        attacker-influencible via prompt injection. Interpolating them straight
+        into SQL turns a prompt-injection into SQL injection and data exfiltration.
+    message: >
+      SQL query built by string interpolation of a (model-controlled) tool
+      argument — prompt-injection-to-SQL-injection (CWE-89). Use a parameterized
+      query: db.prepare('... WHERE name = ?').all(name).
+    pattern-regex: '(SELECT|INSERT|UPDATE|DELETE|FROM|WHERE)[^;\n]*\$\{[^}]+\}'
+
+  - id: ward-eval-dynamic-code
+    languages: [typescript, javascript]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: "CWE-95: Eval Injection"
+      confidence: MEDIUM
+      note: >
+        Flagged for review. If the argument is a constant literal with no
+        user/model input reaching it, Ward verifies and REJECTS this as a
+        non-exploitable false positive rather than 'fixing' it.
+    message: >
+      Use of eval() — dynamic code execution (CWE-95). Verify no model/user
+      input can reach the argument.
+    pattern: eval(...)
+
+  - id: ward-hardcoded-credential
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-798: Use of Hard-coded Credentials"
+      confidence: HIGH
+    message: >
+      Hard-coded credential/secret (CWE-798). Move it to an environment
+      variable or secret manager; never commit secrets to source.
+    patterns:
+      - pattern-regex: '(?i)(ADMIN_KEY|SECRET|API_?KEY|PASSWORD|TOKEN)\s*=\s*["''][^"'']{6,}["'']'
+
+  - id: ward-path-join-untrusted
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      cwe: "CWE-22: Path Traversal"
+      confidence: MEDIUM
+    message: >
+      Filesystem path built from request/model input (CWE-22 path traversal).
+      Resolve and confine to an allowed base directory before use.
+    patterns:
+      - pattern-either:
+          - pattern: join(..., $REQ.body. ... , ...)
+          - pattern: join(..., $REQ.params. ... , ...)
+          - pattern: path.join(..., $REQ.query. ... , ...)

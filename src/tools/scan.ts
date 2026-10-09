@@ -6,9 +6,13 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { readdir, readFile, stat } from "node:fs/promises";
-import { join } from "node:path";
+import { join, resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const pExecFile = promisify(execFile);
+
+/** Ward's own AI-app security ruleset — ships with the repo, runs offline (no Semgrep login). */
+const WARD_RULES = resolve(dirname(fileURLToPath(import.meta.url)), "semgrep-rules/ward-ai-security.yml");
 
 export interface ScanHit {
   ruleId: string;
@@ -43,19 +47,24 @@ export async function semgrepAvailable(): Promise<boolean> {
 export async function scan(targetPath: string): Promise<ScanHit[]> {
   if (await semgrepAvailable()) {
     try {
-      const { stdout } = await pExecFile(
-        "semgrep",
-        ["--config", "auto", "--json", "--quiet", targetPath],
-        { maxBuffer: 32 * 1024 * 1024 },
-      );
+      // Always run Ward's authored AI-security rules (offline). Layer on the
+      // Semgrep registry ("auto") too when a login/token is present for breadth.
+      const args = ["--config", WARD_RULES];
+      if (process.env.SEMGREP_APP_TOKEN || process.env.WARD_SEMGREP_AUTO === "1") {
+        args.push("--config", "auto");
+      }
+      args.push("--json", "--quiet", targetPath);
+      const { stdout } = await pExecFile("semgrep", args, { maxBuffer: 32 * 1024 * 1024 });
       const data = JSON.parse(stdout);
-      return (data.results ?? []).map((r: any): ScanHit => ({
+      const hits = (data.results ?? []).map((r: any): ScanHit => ({
         ruleId: r.check_id,
         path: r.path,
         line: r.start?.line ?? 0,
         message: r.extra?.message ?? "",
         severity: r.extra?.severity ?? "INFO",
       }));
+      if (hits.length) return hits;
+      // Semgrep ran but matched nothing (e.g. rules path lost) — don't go dark.
     } catch (e) {
       // fall through to builtin
     }
