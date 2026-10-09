@@ -263,7 +263,22 @@ function fmtClock(iso) {
 }
 
 /* ---- continuous + done ------------------------------------------------- */
+// Pristine markup of every per-run panel, captured at load, so a new trigger starts a clean board.
+const RESET_IDS = ["agentSteps", "codeSteps", "findings", "findingCount", "scoreBefore", "scoreAfter",
+  "scoreVerdict", "tlGround", "tlRecon", "log", "mSteps", "mTime", "mCost"];
+const pristine = Object.fromEntries(RESET_IDS.map((id) => [id, $(id)?.innerHTML ?? ""]));
+function resetBoard() {
+  for (const id of RESET_IDS) if ($(id)) $(id).innerHTML = pristine[id];
+  findings.clear();
+  reproState.clear();
+  $("scoreVerdict").classList.remove("win");
+  $("chainLink").classList.remove("hot");
+  $("coveragePill").hidden = true;
+  $("doneOverlay").hidden = true;
+  document.querySelectorAll(".phase").forEach((el) => el.classList.remove("active", "done"));
+}
 function showContinuous(trigger) {
+  resetBoard();
   const b = $("continuousBanner");
   b.hidden = false;
   $("continuousText").textContent = `trigger fired → ${trigger}. Waking agent, no human in the loop…`;
@@ -274,7 +289,9 @@ function showDone(meters, prUrl) {
   const m = meters || {};
   $("doneHeadline").textContent = `Done in ${fmtTime(m.wallClockS)} · $${(m.costUsd || 0).toFixed(3)}`;
   const report = $("btnReport");
-  report.href = "/healthz"; // stand-in; the real report URL is wired by the orchestrator
+  // "Report" = the human-readable run report rendered from the case file.
+  report.href = "/report";
+  report.setAttribute("target", "_blank");
   report.setAttribute("onclick", "");
   const pr = $("btnPr");
   if (prUrl) {

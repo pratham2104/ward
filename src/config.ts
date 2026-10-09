@@ -40,6 +40,8 @@ export const config = {
   // 2. GitHub (needed only at PR phase)
   githubToken: opt("GITHUB_TOKEN"),
   githubRepo: opt("GITHUB_REPO"),
+  // HMAC secret for the push webhook (POST /webhook/github). Unset = webhook refuses all deliveries.
+  githubWebhookSecret: opt("GITHUB_WEBHOOK_SECRET"),
 
   // 3. MongoDB (case store) — falls back to local JSON if absent
   mongoUri: opt("MONGODB_URI"),

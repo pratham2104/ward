@@ -39,7 +39,7 @@ export function createApp() {
   app.post("/reset", async (_req, res) => {
     try {
       seedAll();
-      await logs.init();
+      await logs.clear(); // fresh log sink per run — the Detective must see only this run's rows
       res.json({ ok: true });
     } catch (err: any) {
       res.status(500).json({ ok: false, error: err?.message ?? String(err) });

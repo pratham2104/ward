@@ -36,6 +36,16 @@ export class FileLogStore implements LogStore {
     }
   }
 
+  /** Wipe the sink to empty — called on /reset so each run's Detective sees only its own rows. */
+  async clear(): Promise<void> {
+    this.events = [];
+    try {
+      writeFileSync(LOG_PATH, "[]", "utf8");
+    } catch {
+      /* in-memory copy is authoritative for the demo */
+    }
+  }
+
   async query(runId: string): Promise<LogEvent[]> {
     if (runId === "*") return [...this.events];
     return this.events.filter((e) => e.runId === runId);
