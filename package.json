@@ -1,0 +1,38 @@
+{
+  "name": "ward",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Ward — an autonomous security engineer for AI apps (Cyberdefense Hackathon #SFTechWeek)",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "target": "tsx watch target/src/server.ts",
+    "demo:dashboard": "tsx src/dashboard/demo.ts",
+    "test": "vitest run",
+    "test:target": "vitest run target/tests",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@clickhouse/client": "^1.4.0",
+    "better-sqlite3": "^11.3.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "mongodb": "^6.9.0",
+    "openai": "^4.67.0",
+    "resend": "^4.8.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.11",
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.7.0",
+    "@types/ws": "^8.5.12",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}

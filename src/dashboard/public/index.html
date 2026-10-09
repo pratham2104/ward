@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ward · Mission Control</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- ============ TOP: phase rail + step counter + meters ============ -->
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark">◈</span>
+        <span class="brand-name">WARD</span>
+        <span class="brand-sub">autonomous security engineer</span>
+      </div>
+
+      <nav class="phase-rail" id="phaseRail" aria-label="Mission phase">
+        <div class="phase" data-phase="discover">
+          <span class="phase-dot"></span><span class="phase-label">Discover</span>
+        </div>
+        <span class="phase-sep">▸</span>
+        <div class="phase" data-phase="remediate">
+          <span class="phase-dot"></span><span class="phase-label">Remediate</span>
+        </div>
+        <span class="phase-sep">▸</span>
+        <div class="phase" data-phase="intelligence">
+          <span class="phase-dot"></span><span class="phase-label">Intelligence</span>
+        </div>
+        <span class="phase-sep">▸</span>
+        <div class="phase" data-phase="continuous">
+          <span class="phase-dot"></span><span class="phase-label">Continuous</span>
+        </div>
+      </nav>
+
+      <div class="meters">
+        <div class="meter" title="Steps taken">
+          <span class="meter-ico">≡</span>
+          <span class="meter-val" id="mSteps">0</span>
+          <span class="meter-cap">steps</span>
+        </div>
+        <div class="meter" title="Wall-clock">
+          <span class="meter-ico">⏱</span>
+          <span class="meter-val" id="mTime">0m 00s</span>
+        </div>
+        <div class="meter meter-cost" title="Spend">
+          <span class="meter-ico">💲</span>
+          <span class="meter-val" id="mCost">$0.000</span>
+        </div>
+        <div class="conn" id="conn" title="Event stream"><span class="conn-dot"></span><span id="connText">connecting</span></div>
+      </div>
+    </header>
+
+    <!-- ============ CONTINUOUS banner (hidden until event) ============ -->
+    <div class="continuous-banner" id="continuousBanner" hidden>
+      <span class="cb-pulse">●</span>
+      <strong>CONTINUOUS</strong>
+      <span id="continuousText">watching for triggers…</span>
+    </div>
+
+    <!-- ============ MAIN: log | attack chain | findings ============ -->
+    <main class="grid">
+      <!-- LEFT: live agent log -->
+      <section class="panel panel-log">
+        <h2 class="panel-title">◂ Agent Log</h2>
+        <div class="log" id="log" aria-live="polite"></div>
+      </section>
+
+      <!-- CENTER: two-layer attack chain -->
+      <section class="panel panel-chain">
+        <h2 class="panel-title">Attack Chain</h2>
+        <div class="chain">
+          <div class="layer layer-agent" id="layerAgent">
+            <div class="layer-head"><span class="layer-tag">AGENT LAYER</span><span class="layer-hint">prompt · tools · guardrails</span></div>
+            <div class="layer-steps" id="agentSteps"><div class="layer-empty">no agent-layer findings yet</div></div>
+          </div>
+
+          <div class="chain-link" id="chainLink" aria-hidden="true">
+            <span class="chain-arrow">▼</span>
+            <span class="chain-link-label">cross-layer</span>
+          </div>
+
+          <div class="layer layer-code" id="layerCode">
+            <div class="layer-head"><span class="layer-tag">CODE LAYER</span><span class="layer-hint">endpoints · queries · deps</span></div>
+            <div class="layer-steps" id="codeSteps"><div class="layer-empty">no code-layer findings yet</div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: findings -->
+      <section class="panel panel-findings">
+        <h2 class="panel-title">Findings <span class="count-pill" id="findingCount">0</span></h2>
+        <div class="findings" id="findings">
+          <div class="findings-empty" id="findingsEmpty">no findings yet — Discover will populate this</div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ============ BOTTOM: scoreboard + detective ============ -->
+    <footer class="bottom">
+      <section class="panel panel-score">
+        <h2 class="panel-title">Replay Scoreboard</h2>
+        <div class="score">
+          <div class="score-cell score-before">
+            <div class="score-num" id="scoreBefore">—</div>
+            <div class="score-lbl">reproduced<br />before fix</div>
+          </div>
+          <div class="score-arrow">➜</div>
+          <div class="score-cell score-after">
+            <div class="score-num" id="scoreAfter">—</div>
+            <div class="score-lbl">reproduce<br />after fix</div>
+          </div>
+          <div class="score-verdict" id="scoreVerdict">awaiting remediation</div>
+        </div>
+      </section>
+
+      <section class="panel panel-detective">
+        <h2 class="panel-title">
+          Detective — timeline reconstruction
+          <span class="coverage-pill" id="coveragePill" hidden>coverage <b id="coverageVal">0%</b></span>
+        </h2>
+        <div class="detective">
+          <div class="tl-col">
+            <div class="tl-head tl-head-ground">GROUND TRUTH</div>
+            <ol class="tl-list" id="tlGround"><li class="tl-empty">—</li></ol>
+          </div>
+          <div class="tl-col">
+            <div class="tl-head tl-head-recon">RECONSTRUCTED FROM LOGS</div>
+            <ol class="tl-list" id="tlRecon"><li class="tl-empty">—</li></ol>
+          </div>
+        </div>
+      </section>
+    </footer>
+
+    <!-- ============ DONE overlay ============ -->
+    <div class="done-overlay" id="doneOverlay" hidden>
+      <div class="done-card">
+        <div class="done-check">✓</div>
+        <div class="done-headline" id="doneHeadline">Done</div>
+        <div class="done-sub">found → fixed → verified → detected · no human in the loop</div>
+        <div class="done-actions">
+          <a class="btn btn-primary" id="btnReport" href="#" target="_blank" rel="noopener">View report</a>
+          <a class="btn btn-pr" id="btnPr" href="#" target="_blank" rel="noopener">Open PR ↗</a>
+        </div>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

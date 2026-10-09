@@ -1,0 +1,14 @@
+# secrets / private
+.env
+*.env
+!.env.example
+warden.env
+# deps / build
+node_modules/
+dist/
+# regenerable runtime data
+reports/
+target/.data/
+target/.git/
+# os
+.DS_Store

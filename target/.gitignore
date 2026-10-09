@@ -1,0 +1,2 @@
+# Regenerable runtime data (SQLite, docs, logs) — reseeded by POST /reset.
+.data/
